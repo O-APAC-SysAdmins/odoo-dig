@@ -35,24 +35,23 @@ class Dig does Component {
 }
 
 my Dig $dig .= new;
-
-my &index = &page.assuming(
-	title => "Dig DB Lookup",
-);
+my &index    = &page.assuming(
+		   title => "Dig DB Lookup",
+	       );
 
 sub SITE {
     site :register[$dig], :data-theme<purple>,
     index
 	main :class<container>, [
-	    article [
-		h3 "DB Lookup !";
-		form |$dig.hx-search, [
-		    input :name<request>, :placeholder("random.db.odoo.com");
-		    button :type<submit>, 'Search!';
-		];
-		div :id("search-result");
-	    ]
-	];
+	article [
+	    h3 "DB Lookup !";
+	    form |$dig.hx-search, [
+		input :name<request>, :placeholder("random.db.odoo.com");
+		button :type<submit>, 'Search!';
+	    ];
+	    div :id("search-result");
+	]
+    ];
 }
 
 SITE.serve;
