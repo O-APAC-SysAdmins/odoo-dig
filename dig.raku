@@ -22,7 +22,7 @@ class Dig does Component {
 	    $domain .= subst('.');
 	    $domain ~= '.odoo.com';
 	    say $domain.raku;
-	    @!details.push: "appeneded .odoo.com";
+	    @!details.push: "appened .odoo.com";
 	}
 	
 	# get MX records if any
