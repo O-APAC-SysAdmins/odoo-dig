@@ -12,11 +12,7 @@ class Dig does Component {
 
         my $dig-proc = run <dig MX>, $request, :out;
         my $dig-out  = $dig-proc.out.slurp;
-        my $output   = do if $dig-out ~~ / ';; ANSWER SECTION:' \n (.*?) \n\n / {
-            ~$0.trim;
-        } else {
-            "No MX record found."  
-        };
+        my $output   = $dig-out ~~ / ';; ANSWER SECTION:' \n (.*?) \n\n / ?? ~$0.trim !! "No MX record found.";
         say $output.raku;
         $!response = $output;
         self;
