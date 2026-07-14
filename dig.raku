@@ -6,13 +6,30 @@ use Air::Component;
 
 class Dig does Component {
     has $!response;
+    has @!details;
     
     method search(:$request) is controller {
         return '' unless $request;
 
-        my $dig-proc = run <dig MX>, $request, :out;
+	# clean request
+	my $domain = $request;
+	if $request.contains(/ <[ : ? # - ]> /) {
+	    $domain = $request.comb(/ <-[ / : ? # ]>+ /).max(*.chars);
+	    say $domain.raku;
+	    @!details.push: "cleaned to: $domain";
+	}
+	if ! $domain.ends-with('odoo.com') {
+	    $domain .= subst('.');
+	    $domain ~= '.odoo.com';
+	    say $domain.raku;
+	    @!details.push: "appeneded .odoo.com";
+	}
+	
+	# get MX records if any
+        my $dig-proc = run <dig MX>, $domain, :out;
         my $dig-out  = $dig-proc.out.slurp;
         my $output   = $dig-out ~~ / ';; ANSWER SECTION:' \n (.*?) \n\n / ?? ~$0.trim !! "No MX record found.";
+
         say $output.raku;
         $!response = $output;
         self;
@@ -26,7 +43,11 @@ class Dig does Component {
     }
     
     method HTML {
-        pre [ code "$!response" ]
+	LEAVE @!details = ();
+	div [
+            pre [ code "$!response" ];
+	    pre [ code :style<color: red;>, @!details.join("\n")  ] if @!details;
+	]
     }
 }
 
