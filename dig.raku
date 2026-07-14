@@ -14,16 +14,17 @@ class Dig does Component {
 	# clean request
 	my $domain = $request;
 	if $request.contains(/ <[ : ? # - ]> /) {
-	    $domain = $request.comb(/ <-[ / : ? # ]>+ /).max(*.chars);
+	    $domain = $request.comb(/ <-[ / : ? # ]>+ /).grep({!/^https?$/}).first;
 	    say $domain.raku;
-	    @!details.push: "cleaned to: $domain";
+	    @!details.push: "cleaned to:      $domain";
 	}
 	if ! $domain.ends-with('odoo.com') {
 	    $domain .= subst('.');
 	    $domain ~= '.odoo.com';
 	    say $domain.raku;
-	    @!details.push: "appened .odoo.com";
+	    @!details.push: "appened:         .odoo.com";
 	}
+	@!details.push("domain searched: $domain") if @!details;
 	
 	# get MX records if any
         my $dig-proc = run <dig MX>, $domain, :out;
@@ -61,9 +62,9 @@ sub SITE {
     index
         main :class<container>, [
         article [
-            h3 "DB Lookup !";
+            h3 "Odoo SaaS MX Lookup !";
             form |$dig.hx-search, [
-                input :name<request>, :placeholder("random.db.odoo.com");
+                input :name<request>, :placeholder("saas-db-domain-to-search.odoo.com");
                 button :type<submit>, 'Search!';
             ];
             div :id("search-result");
