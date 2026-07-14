@@ -11,22 +11,22 @@ class Dig does Component {
     method search(:$request) is controller {
         return '' unless $request;
 
-	# clean request
-	my $domain = $request;
-	if $request.contains(/ <[ : ? # - ]> /) {
-	    $domain = $request.comb(/ <-[ / : ? # ]>+ /).grep({!/^https?$/}).first;
-	    say $domain.raku;
-	    @!details.push: "cleaned to:      $domain";
-	}
-	if ! $domain.ends-with('odoo.com') {
-	    $domain .= subst('.');
-	    $domain ~= '.odoo.com';
-	    say $domain.raku;
-	    @!details.push: "appened:         .odoo.com";
-	}
-	@!details.push("domain searched: $domain") if @!details;
-	
-	# get MX records if any
+        # clean request
+        my $domain = $request;
+        if $request.contains(/ <[ : ? # - ]> /) {
+            $domain = $request.comb(/ <-[ / : ? # ]>+ /).grep({!/^https?$/}).first;
+            say $domain.raku;
+            @!details.push: "cleaned to:      $domain";
+        }
+        if ! $domain.ends-with('odoo.com') {
+            $domain .= subst('.');
+            $domain ~= '.odoo.com';
+            say $domain.raku;
+            @!details.push: "appened:         .odoo.com";
+        }
+        @!details.push("domain searched: $domain") if @!details;
+        
+        # get MX records if any
         my $dig-proc = run <dig MX>, $domain, :out;
         my $dig-out  = $dig-proc.out.slurp;
         my $output   = $dig-out ~~ / ';; ANSWER SECTION:' \n (.*?) \n\n / ?? ~$0.trim !! "No MX record found.";
@@ -44,11 +44,15 @@ class Dig does Component {
     }
     
     method HTML {
-	LEAVE @!details = ();
-	div [
+        LEAVE @!details = ();
+        div [
+            h5 b 'Dig output:';
             pre [ code "$!response" ];
-	    pre [ code :style<color: red;>, @!details.join("\n")  ] if @!details;
-	]
+            |do if @!details {(
+                h5 b 'Corrections:';
+                pre [ code :style<color: red;>, @!details.join("\n")  ];
+            )}
+        ]
     }
 }
 
