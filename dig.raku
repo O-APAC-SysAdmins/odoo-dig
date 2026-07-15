@@ -7,14 +7,14 @@ use Air::Component;
 class Dig does Component {
     has $!response;
     has @!details;
-    
+
     method search(:$request) is controller {
         return '' unless $request;
 
         # clean request
         my $domain = $request;
-        if $request.contains(/ <[ : ? # - ]> /) {
-            $domain = $request.comb(/ <-[ / : ? # ]>+ /).grep({!/^https?$/}).first;
+        if $request.contains(/ <[ : ? # / ; ]> /) {
+            $domain = $request.comb(/ <-[ / : ? # ; ]>+ /).grep({!/^https?$/}).first;
             say $domain.raku;
             @!details.push: "cleaned to:      $domain";
         }
@@ -25,13 +25,18 @@ class Dig does Component {
             @!details.push: "appened:         .odoo.com";
         }
         @!details.push("domain searched: $domain") if @!details;
-        
+
         # get MX records if any
         my $dig-proc = run <dig MX>, $domain, :out;
         my $dig-out  = $dig-proc.out.slurp;
-        my $output   = $dig-out ~~ / ';; ANSWER SECTION:' \n (.*?) \n\n / ?? ~$0.trim !! "No MX record found.";
+        $!response = "No MX record found." andthen return self unless $dig-out ~~ / ';; ANSWER SECTION:' \n (.*?) \n\n /;
+        my @outputs = $0.trim.lines;
+        say @outputs.raku;
 
+        # only keep domain from output
+        my $output = @outputs.map({.words[*-1].subst(/\.$/)}).join("\n");
         say $output.raku;
+
         $!response = $output;
         self;
     }
